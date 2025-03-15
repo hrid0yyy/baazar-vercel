@@ -1,13 +1,24 @@
+require("dotenv").config();
 const express = require("express");
-const app = express();
-const PORT = 4000;
+const setupSwagger = require("./swagger"); // Import Swagger setup
+const cors = require("cors");
 
-app.get("/home", (req, res) => {
-  res.status(200).json("Welcome, baazar limited is working well");
+const app = express();
+app.use(cors()); // Enable CORS
+
+const PORT = 5001;
+
+// API routes
+const api = require("./api/main");
+app.use("/api", api);
+
+// Swagger documentation
+setupSwagger(app);
+
+app.get("/", (req, res) => {
+  res.send("<h1>Baazar Limited Node Backend</h1>");
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Baazar Limited listening on port ${PORT}`);
 });
-
-module.exports = app;
