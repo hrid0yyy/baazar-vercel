@@ -1,20 +1,20 @@
 const express = require("express");
-const setupSwagger = require("../swagger"); // Import Swagger setup
-const cors = require("cors");
-
 const app = express();
-app.use(cors()); // Enable CORS
+const setupSwagger = require("./swagger");
+const PORT = 4000;
 
 // API routes
-const api = require("../api/main");
+const api = require("./api/main");
 app.use("/api", api);
 
-// Swagger documentation
-setupSwagger(app);
-
 app.get("/", (req, res) => {
-  res.send("<h1>Baazar Limited Node Backend</h1>");
+  res.status(200).json("Welcome, baazar limit app is working well");
 });
 
-// Export the express app as a serverless function (Vercel handler)
+setupSwagger(app);
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
+
 module.exports = app;
