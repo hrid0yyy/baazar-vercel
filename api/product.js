@@ -4,7 +4,8 @@ const multer = require("multer");
 const { supabase } = require("../supabase");
 const uploadImage = require("../utils/image");
 
-const upload = multer({ dest: "uploads/" });
+// Use memory storage for file uploads in serverless functions
+const upload = multer(); // No destination, it will store files in memory
 
 /**
  * @swagger
@@ -52,17 +53,6 @@ router.get("/", (req, res) => {
  *     responses:
  *       201:
  *         description: Product added successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
  *       400:
  *         description: Missing required fields
  *       500:
@@ -106,13 +96,14 @@ router.post("/add", upload.single("picture"), async (req, res) => {
       coupon: coupon || null,
     };
 
-    const result = await uploadImage(file);
+    const result = await uploadImage(file); // Upload image to external storage
     if (!result.success) {
       return res.status(500).json({ success: false, error: result.error });
     }
 
     const publicUrl = result.publicUrl;
 
+    // Insert the new product into Supabase
     const { data, error } = await supabase
       .from("product")
       .insert([{ ...productData, picture: publicUrl }]);
@@ -148,36 +139,6 @@ router.post("/add", upload.single("picture"), async (req, res) => {
  *     responses:
  *       200:
  *         description: Products retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       title:
- *                         type: string
- *                       description:
- *                         type: string
- *                       price:
- *                         type: number
- *                       quantity:
- *                         type: integer
- *                       category_id:
- *                         type: integer
- *                       discount:
- *                         type: number
- *                       coupon:
- *                         type: string
- *                       picture:
- *                         type: string
  *       500:
  *         description: Server error
  */

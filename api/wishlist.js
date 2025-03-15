@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../supabase");
+const cors = require("cors"); // CORS middleware
+
+// Enable CORS for all routes
+router.use(cors());
 
 /**
  * @swagger
@@ -52,6 +56,7 @@ router.post("/add", async (req, res) => {
       });
     }
 
+    // Insert the wishlist item into Supabase
     const { data, error } = await supabase
       .from("wishlist")
       .insert([{ user_id, product_id }]);
@@ -67,7 +72,7 @@ router.post("/add", async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding to wishlist:", error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
@@ -87,24 +92,6 @@ router.post("/add", async (req, res) => {
  *     responses:
  *       200:
  *         description: Wishlist retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       user_id:
- *                         type: integer
- *                       product_id:
- *                         type: integer
  *       400:
  *         description: Missing user_id
  *       500:
@@ -121,6 +108,7 @@ router.get("/fetch", async (req, res) => {
       });
     }
 
+    // Fetch the wishlist items from Supabase
     const { data, error } = await supabase
       .from("wishlist")
       .select("*")
@@ -133,7 +121,7 @@ router.get("/fetch", async (req, res) => {
     res.status(200).json({ success: true, data });
   } catch (error) {
     console.error("Error fetching wishlist:", error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
