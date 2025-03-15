@@ -1,6 +1,5 @@
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const PORT = process.env.PORT || 5001;
 
 const options = {
   definition: {
@@ -12,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`, // Ensure this matches your running server
+        url: `https://baazar-vercel.vercel.app`, // Ensure this matches your running server
         description: "Local server",
       },
     ],
