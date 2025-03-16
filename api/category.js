@@ -171,24 +171,61 @@ router.post("/add", upload.single("picture"), async (req, res) => {
  *                 error:
  *                   type: string
  */
+/**
+ * @swagger
+ * /api/category/fetch:
+ *   get:
+ *     summary: Fetch categories with their products
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         required: false
+ *         description: Filter categories by title
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Categories with products fetched successfully
+ *       500:
+ *         description: Server error
+ */
 router.get("/fetch", async (req, res) => {
   try {
     const { title } = req.query;
 
-    let query = supabase.from("category").select("*");
+    let categoryQuery = supabase.from("category").select("*");
 
     if (title) {
-      query = query.ilike("title", `%${title}%`);
+      categoryQuery = categoryQuery.ilike("title", `%${title}%`);
     }
 
-    const { data, error } = await query;
+    const { data: categories, error: categoryError } = await categoryQuery;
 
-    if (error) {
-      throw new Error(`Error fetching categories: ${error.message}`);
+    if (categoryError) {
+      throw new Error(`Error fetching categories: ${categoryError.message}`);
     }
-    res.status(200).json({ success: true, data });
+
+    // Fetch all products
+    const { data: products, error: productError } = await supabase
+      .from("product")
+      .select("*");
+
+    if (productError) {
+      throw new Error(`Error fetching products: ${productError.message}`);
+    }
+
+    // Map products into their respective categories
+    const categoriesWithProducts = categories.map((category) => ({
+      ...category,
+      products: products.filter(
+        (product) => product.category_id === category.id
+      ),
+    }));
+
+    res.status(200).json({ success: true, data: categoriesWithProducts });
   } catch (error) {
-    console.error("Error fetching categories:", error.message);
+    console.error("Error fetching categories with products:", error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -259,25 +296,39 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
+    // Fetch category
+    const { data: category, error: categoryError } = await supabase
       .from("category")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (error) {
-      throw new Error(`Error fetching category: ${error.message}`);
+    if (categoryError) {
+      throw new Error(`Error fetching category: ${categoryError.message}`);
     }
 
-    if (!data) {
+    if (!category) {
       return res
         .status(404)
         .json({ success: false, error: "Category not found" });
     }
 
-    res.status(200).json({ success: true, data });
+    // Fetch products for this category
+    const { data: products, error: productError } = await supabase
+      .from("product")
+      .select("*")
+      .eq("category_id", id);
+
+    if (productError) {
+      throw new Error(`Error fetching products: ${productError.message}`);
+    }
+
+    // Add products inside the category object
+    category.products = products;
+
+    res.status(200).json({ success: true, data: category });
   } catch (error) {
-    console.error("Error fetching category:", error.message);
+    console.error("Error fetching category with products:", error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
