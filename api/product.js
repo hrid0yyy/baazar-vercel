@@ -2,10 +2,9 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const { supabase } = require("../supabase");
-const uploadImage = require("../utils/image");
 
 // Use memory storage for file uploads in serverless functions
-const upload = multer(); // Save files to the "uploads" directory
+const upload = multer({ storage: multer.memoryStorage() }); // Save files in memory
 
 /**
  * @swagger
@@ -71,6 +70,7 @@ router.post("/add", upload.single("picture"), async (req, res) => {
     } = req.body;
     const file = req.file;
 
+    // Validate required fields
     if (
       !title ||
       !description ||
@@ -96,26 +96,35 @@ router.post("/add", upload.single("picture"), async (req, res) => {
       coupon: coupon || null,
     };
 
-    const result = await uploadImage(file); // Upload image to external storage
-    if (!result.success) {
-      return res.status(500).json({ success: false, error: result.error });
+    // Upload the image file to Supabase Storage directly from memory
+    const uniqueFileName = `${Date.now()}_${file.originalname}`;
+
+    const { data, error } = await supabase.storage
+      .from("images") // Replace with your actual bucket name
+      .upload(uniqueFileName, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (error) {
+      throw new Error(`Error uploading file to Supabase: ${error.message}`);
     }
 
-    const publicUrl = result.publicUrl;
+    // Construct the public URL for the file
+    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/product-images/${uniqueFileName}`;
 
     // Insert the new product into Supabase
-    const { data, error } = await supabase
+    const { data: productDataDb, error: dbError } = await supabase
       .from("product")
       .insert([{ ...productData, picture: publicUrl }]);
 
-    if (error) {
-      throw new Error(`Database insertion failed: ${error.message}`);
+    if (dbError) {
+      throw new Error(`Database insertion failed: ${dbError.message}`);
     }
 
     res.status(201).json({
       success: true,
       message: "Product added successfully",
-      data,
+      data: productDataDb,
     });
   } catch (error) {
     console.error("Error adding product:", error.message);
