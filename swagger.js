@@ -10,13 +10,12 @@ const options = {
     },
     servers: [
       {
-        url: "https://baazar-vercel.vercel.app",
-        description: "Production Server",
-      },
-
-      {
         url: "http://localhost:4000",
         description: "Local Development Server",
+      },
+      {
+        url: "https://baazar-vercel.vercel.app",
+        description: "Production Server",
       },
     ],
   },

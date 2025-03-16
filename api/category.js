@@ -332,5 +332,87 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+/**
+ * @swagger
+ * /api/category/delete/{id}:
+ *   delete:
+ *     summary: Delete a category by ID and its associated products
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The category ID to delete
+ *     responses:
+ *       200:
+ *         description: Successfully deleted category and its products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Category not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if category exists
+    const { data: category, error: categoryError } = await supabase
+      .from("category")
+      .select("id")
+      .eq("id", id)
+      .single();
+
+    if (categoryError) {
+      throw new Error(`Error fetching category: ${categoryError.message}`);
+    }
+
+    if (!category) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Category not found" });
+    }
+
+    // Delete all products associated with this category
+    const { error: productDeleteError } = await supabase
+      .from("product")
+      .delete()
+      .eq("category_id", id);
+
+    if (productDeleteError) {
+      throw new Error(`Error deleting products: ${productDeleteError.message}`);
+    }
+
+    // Delete the category
+    const { error: categoryDeleteError } = await supabase
+      .from("category")
+      .delete()
+      .eq("id", id);
+
+    if (categoryDeleteError) {
+      throw new Error(
+        `Error deleting category: ${categoryDeleteError.message}`
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Category and associated products deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting category and products:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = router;

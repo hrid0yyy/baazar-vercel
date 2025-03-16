@@ -375,5 +375,84 @@ router.get("/category/:category_id", async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+/**
+ * @swagger
+ * /api/product/delete/{id}:
+ *   delete:
+ *     summary: Delete a single product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID to delete
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Convert the id to an integer
+    const productId = parseInt(id, 10);
+
+    // Check if the id is a valid number
+    if (isNaN(productId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid product ID" });
+    }
+
+    // Check if the product exists
+    const { data: product, error: productError } = await supabase
+      .from("product")
+      .select("id")
+      .eq("id", productId)
+      .single();
+
+    if (productError) {
+      throw new Error(`Error fetching product: ${productError.message}`);
+    }
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
+    }
+
+    // Delete the product
+    const { error: productDeleteError } = await supabase
+      .from("product")
+      .delete()
+      .eq("id", productId);
+
+    if (productDeleteError) {
+      throw new Error(`Error deleting product: ${productDeleteError.message}`);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = router;
