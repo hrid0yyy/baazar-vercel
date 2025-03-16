@@ -1,6 +1,5 @@
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -11,8 +10,13 @@ const options = {
     },
     servers: [
       {
-        url: `https://baazar-vercel.vercel.app`, // Ensure this matches your running server
-        description: "Local server",
+        url: "https://baazar-vercel.vercel.app",
+        description: "Production Server",
+      },
+
+      {
+        url: "http://localhost:4000",
+        description: "Local Development Server",
       },
     ],
   },

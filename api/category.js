@@ -13,12 +13,76 @@ const upload = multer(); // Keep it in memory for serverless
  *   description: Category management APIs
  */
 
-// Simple route to verify API is working
 router.get("/", (req, res) => {
   res.json({ message: "Category API working!" });
 });
 
-// POST /api/category/add (with image upload)
+/**
+ * @swagger
+ * /api/category/add:
+ *   post:
+ *     summary: Add a new category
+ *     tags: [Categories]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - picture
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Electronics"
+ *               picture:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Category added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Category added successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Title and picture are required"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ */
 router.post("/add", upload.single("picture"), async (req, res) => {
   try {
     const { title } = req.body;
@@ -30,7 +94,6 @@ router.post("/add", upload.single("picture"), async (req, res) => {
         .json({ success: false, error: "Title and picture are required" });
     }
 
-    // Upload the image directly to Supabase storage (or any external service)
     const result = await uploadImage(file);
     if (!result.success) {
       return res.status(500).json({ success: false, error: result.error });
@@ -38,7 +101,6 @@ router.post("/add", upload.single("picture"), async (req, res) => {
 
     const publicUrl = result.publicUrl;
 
-    // Insert the new category into the Supabase database
     const { data, error } = await supabase
       .from("category")
       .insert([{ title, picture: publicUrl }]);
@@ -58,7 +120,57 @@ router.post("/add", upload.single("picture"), async (req, res) => {
   }
 });
 
-// GET /api/category/fetch (fetch categories with optional title filter)
+/**
+ * @swagger
+ * /api/category/fetch:
+ *   get:
+ *     summary: Fetch all categories or filter by title
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Filter categories by title
+ *     responses:
+ *       200:
+ *         description: List of categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       title:
+ *                         type: string
+ *                         example: "Electronics"
+ *                       picture:
+ *                         type: string
+ *                         example: "https://example.com/image.jpg"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ */
 router.get("/fetch", async (req, res) => {
   try {
     const { title } = req.query;
