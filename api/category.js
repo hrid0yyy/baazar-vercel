@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const { supabase } = require("../supabase");
 const uploadImage = require("../utils/image");
-const upload = multer({ dest: "uploads/" }); // Keep it in memory for serverless
+const upload = multer(); // Keep it in memory for serverless
 
 // Swagger tags
 /**
@@ -230,189 +230,189 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
-// /**
-//  * @swagger
-//  * /api/category/{id}:
-//  *   get:
-//  *     summary: Fetch a category by its ID
-//  *     tags: [Categories]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         required: true
-//  *         description: The ID of the category to fetch
-//  *         schema:
-//  *           type: integer
-//  *     responses:
-//  *       200:
-//  *         description: Category fetched successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                   example: true
-//  *                 data:
-//  *                   type: object
-//  *                   properties:
-//  *                     id:
-//  *                       type: integer
-//  *                       example: 1
-//  *                     title:
-//  *                       type: string
-//  *                       example: "Electronics"
-//  *                     picture:
-//  *                       type: string
-//  *                       example: "https://example.com/image.jpg"
-//  *       404:
-//  *         description: Category not found
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                   example: false
-//  *                 error:
-//  *                   type: string
-//  *                   example: "Category not found"
-//  *       500:
-//  *         description: Server error
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                   example: false
-//  *                 error:
-//  *                   type: string
-//  */
-// router.get("/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
+/**
+ * @swagger
+ * /api/category/{id}:
+ *   get:
+ *     summary: Fetch a category by its ID
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the category to fetch
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Category fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     title:
+ *                       type: string
+ *                       example: "Electronics"
+ *                     picture:
+ *                       type: string
+ *                       example: "https://example.com/image.jpg"
+ *       404:
+ *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Category not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     // Fetch category
-//     const { data: category, error: categoryError } = await supabase
-//       .from("category")
-//       .select("*")
-//       .eq("id", id)
-//       .single();
+    // Fetch category
+    const { data: category, error: categoryError } = await supabase
+      .from("category")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-//     if (categoryError) {
-//       throw new Error(`Error fetching category: ${categoryError.message}`);
-//     }
+    if (categoryError) {
+      throw new Error(`Error fetching category: ${categoryError.message}`);
+    }
 
-//     if (!category) {
-//       return res
-//         .status(404)
-//         .json({ success: false, error: "Category not found" });
-//     }
+    if (!category) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Category not found" });
+    }
 
-//     // Fetch products for this category
-//     const { data: products, error: productError } = await supabase
-//       .from("product")
-//       .select("*")
-//       .eq("category_id", id);
+    // Fetch products for this category
+    const { data: products, error: productError } = await supabase
+      .from("product")
+      .select("*")
+      .eq("category_id", id);
 
-//     if (productError) {
-//       throw new Error(`Error fetching products: ${productError.message}`);
-//     }
+    if (productError) {
+      throw new Error(`Error fetching products: ${productError.message}`);
+    }
 
-//     // Add products inside the category object
-//     category.products = products;
+    // Add products inside the category object
+    category.products = products;
 
-//     res.status(200).json({ success: true, data: category });
-//   } catch (error) {
-//     console.error("Error fetching category with products:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
-// /**
-//  * @swagger
-//  * /api/category/delete/{id}:
-//  *   delete:
-//  *     summary: Delete a category by ID and its associated products
-//  *     tags: [Categories]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *         description: The category ID to delete
-//  *     responses:
-//  *       200:
-//  *         description: Successfully deleted category and its products
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                 message:
-//  *                   type: string
-//  *       404:
-//  *         description: Category not found
-//  *       500:
-//  *         description: Internal server error
-//  */
-// router.delete("/delete/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
+    res.status(200).json({ success: true, data: category });
+  } catch (error) {
+    console.error("Error fetching category with products:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+/**
+ * @swagger
+ * /api/category/delete/{id}:
+ *   delete:
+ *     summary: Delete a category by ID and its associated products
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The category ID to delete
+ *     responses:
+ *       200:
+ *         description: Successfully deleted category and its products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Category not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     // Check if category exists
-//     const { data: category, error: categoryError } = await supabase
-//       .from("category")
-//       .select("id")
-//       .eq("id", id)
-//       .single();
+    // Check if category exists
+    const { data: category, error: categoryError } = await supabase
+      .from("category")
+      .select("id")
+      .eq("id", id)
+      .single();
 
-//     if (categoryError) {
-//       throw new Error(`Error fetching category: ${categoryError.message}`);
-//     }
+    if (categoryError) {
+      throw new Error(`Error fetching category: ${categoryError.message}`);
+    }
 
-//     if (!category) {
-//       return res
-//         .status(404)
-//         .json({ success: false, error: "Category not found" });
-//     }
+    if (!category) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Category not found" });
+    }
 
-//     // Delete all products associated with this category
-//     const { error: productDeleteError } = await supabase
-//       .from("product")
-//       .delete()
-//       .eq("category_id", id);
+    // Delete all products associated with this category
+    const { error: productDeleteError } = await supabase
+      .from("product")
+      .delete()
+      .eq("category_id", id);
 
-//     if (productDeleteError) {
-//       throw new Error(`Error deleting products: ${productDeleteError.message}`);
-//     }
+    if (productDeleteError) {
+      throw new Error(`Error deleting products: ${productDeleteError.message}`);
+    }
 
-//     // Delete the category
-//     const { error: categoryDeleteError } = await supabase
-//       .from("category")
-//       .delete()
-//       .eq("id", id);
+    // Delete the category
+    const { error: categoryDeleteError } = await supabase
+      .from("category")
+      .delete()
+      .eq("id", id);
 
-//     if (categoryDeleteError) {
-//       throw new Error(
-//         `Error deleting category: ${categoryDeleteError.message}`
-//       );
-//     }
+    if (categoryDeleteError) {
+      throw new Error(
+        `Error deleting category: ${categoryDeleteError.message}`
+      );
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Category and associated products deleted successfully",
-//     });
-//   } catch (error) {
-//     console.error("Error deleting category and products:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
+    res.status(200).json({
+      success: true,
+      message: "Category and associated products deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting category and products:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = router;

@@ -5,7 +5,7 @@ const { supabase } = require("../supabase");
 const uploadImage = require("../utils/image");
 
 // Use memory storage for file uploads in serverless functions
-const upload = multer({ dest: "uploads/" }); // Save files to the "uploads" directory
+const upload = multer(); // Save files to the "uploads" directory
 
 /**
  * @swagger
@@ -281,178 +281,178 @@ router.put("/update/discount/:id", async (req, res) => {
   }
 });
 
-// /**
-//  * @swagger
-//  * /api/product/{id}:
-//  *   get:
-//  *     summary: Fetch a product by its ID
-//  *     tags: [Products]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         required: true
-//  *         description: The ID of the product to fetch
-//  *         schema:
-//  *           type: integer
-//  *     responses:
-//  *       200:
-//  *         description: Product fetched successfully
-//  *       404:
-//  *         description: Product not found
-//  *       500:
-//  *         description: Server error
-//  */
-// router.get("/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
+/**
+ * @swagger
+ * /api/product/{id}:
+ *   get:
+ *     summary: Fetch a product by its ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the product to fetch
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Product fetched successfully
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     const { data, error } = await supabase
-//       .from("product")
-//       .select("*")
-//       .eq("id", id)
-//       .single();
+    const { data, error } = await supabase
+      .from("product")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-//     if (error) {
-//       throw new Error(`Error fetching product: ${error.message}`);
-//     }
+    if (error) {
+      throw new Error(`Error fetching product: ${error.message}`);
+    }
 
-//     if (!data) {
-//       return res
-//         .status(404)
-//         .json({ success: false, error: "Product not found" });
-//     }
+    if (!data) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
+    }
 
-//     res.status(200).json({ success: true, data });
-//   } catch (error) {
-//     console.error("Error fetching product:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching product:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-// /**
-//  * @swagger
-//  * /api/product/category/{category_id}:
-//  *   get:
-//  *     summary: Fetch products by category ID
-//  *     tags: [Products]
-//  *     parameters:
-//  *       - in: path
-//  *         name: category_id
-//  *         required: true
-//  *         description: The ID of the category to fetch products from
-//  *         schema:
-//  *           type: integer
-//  *     responses:
-//  *       200:
-//  *         description: Products fetched successfully
-//  *       404:
-//  *         description: No products found for this category
-//  *       500:
-//  *         description: Server error
-//  */
-// router.get("/category/:category_id", async (req, res) => {
-//   try {
-//     const { category_id } = req.params;
+/**
+ * @swagger
+ * /api/product/category/{category_id}:
+ *   get:
+ *     summary: Fetch products by category ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: category_id
+ *         required: true
+ *         description: The ID of the category to fetch products from
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Products fetched successfully
+ *       404:
+ *         description: No products found for this category
+ *       500:
+ *         description: Server error
+ */
+router.get("/category/:category_id", async (req, res) => {
+  try {
+    const { category_id } = req.params;
 
-//     const { data, error } = await supabase
-//       .from("product")
-//       .select("*")
-//       .eq("category_id", category_id);
+    const { data, error } = await supabase
+      .from("product")
+      .select("*")
+      .eq("category_id", category_id);
 
-//     if (error) {
-//       throw new Error(`Error fetching products: ${error.message}`);
-//     }
+    if (error) {
+      throw new Error(`Error fetching products: ${error.message}`);
+    }
 
-//     if (!data || data.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ success: false, error: "No products found for this category" });
-//     }
+    if (!data || data.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "No products found for this category" });
+    }
 
-//     res.status(200).json({ success: true, data });
-//   } catch (error) {
-//     console.error("Error fetching products:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
-// /**
-//  * @swagger
-//  * /api/product/delete/{id}:
-//  *   delete:
-//  *     summary: Delete a single product by ID
-//  *     tags: [Products]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *         description: The product ID to delete
-//  *     responses:
-//  *       200:
-//  *         description: Successfully deleted the product
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                 message:
-//  *                   type: string
-//  *       404:
-//  *         description: Product not found
-//  *       500:
-//  *         description: Internal server error
-//  */
-// router.delete("/delete/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+/**
+ * @swagger
+ * /api/product/delete/{id}:
+ *   delete:
+ *     summary: Delete a single product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID to delete
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     // Convert the id to an integer
-//     const productId = parseInt(id, 10);
+    // Convert the id to an integer
+    const productId = parseInt(id, 10);
 
-//     // Check if the id is a valid number
-//     if (isNaN(productId)) {
-//       return res
-//         .status(400)
-//         .json({ success: false, error: "Invalid product ID" });
-//     }
+    // Check if the id is a valid number
+    if (isNaN(productId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid product ID" });
+    }
 
-//     // Check if the product exists
-//     const { data: product, error: productError } = await supabase
-//       .from("product")
-//       .select("id")
-//       .eq("id", productId)
-//       .single();
+    // Check if the product exists
+    const { data: product, error: productError } = await supabase
+      .from("product")
+      .select("id")
+      .eq("id", productId)
+      .single();
 
-//     if (productError) {
-//       throw new Error(`Error fetching product: ${productError.message}`);
-//     }
+    if (productError) {
+      throw new Error(`Error fetching product: ${productError.message}`);
+    }
 
-//     if (!product) {
-//       return res
-//         .status(404)
-//         .json({ success: false, error: "Product not found" });
-//     }
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
+    }
 
-//     // Delete the product
-//     const { error: productDeleteError } = await supabase
-//       .from("product")
-//       .delete()
-//       .eq("id", productId);
+    // Delete the product
+    const { error: productDeleteError } = await supabase
+      .from("product")
+      .delete()
+      .eq("id", productId);
 
-//     if (productDeleteError) {
-//       throw new Error(`Error deleting product: ${productDeleteError.message}`);
-//     }
+    if (productDeleteError) {
+      throw new Error(`Error deleting product: ${productDeleteError.message}`);
+    }
 
-//     res
-//       .status(200)
-//       .json({ success: true, message: "Product deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting product:", error.message);
-//     res.status(500).json({ success: false, error: error.message });
-//   }
-// });
+    res
+      .status(200)
+      .json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = router;
