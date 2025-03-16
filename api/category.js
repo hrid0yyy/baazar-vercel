@@ -362,57 +362,57 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.delete("/delete/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
+// router.delete("/delete/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
-    // Check if category exists
-    const { data: category, error: categoryError } = await supabase
-      .from("category")
-      .select("id")
-      .eq("id", id)
-      .single();
+//     // Check if category exists
+//     const { data: category, error: categoryError } = await supabase
+//       .from("category")
+//       .select("id")
+//       .eq("id", id)
+//       .single();
 
-    if (categoryError) {
-      throw new Error(`Error fetching category: ${categoryError.message}`);
-    }
+//     if (categoryError) {
+//       throw new Error(`Error fetching category: ${categoryError.message}`);
+//     }
 
-    if (!category) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Category not found" });
-    }
+//     if (!category) {
+//       return res
+//         .status(404)
+//         .json({ success: false, error: "Category not found" });
+//     }
 
-    // Delete all products associated with this category
-    const { error: productDeleteError } = await supabase
-      .from("product")
-      .delete()
-      .eq("category_id", id);
+//     // Delete all products associated with this category
+//     const { error: productDeleteError } = await supabase
+//       .from("product")
+//       .delete()
+//       .eq("category_id", id);
 
-    if (productDeleteError) {
-      throw new Error(`Error deleting products: ${productDeleteError.message}`);
-    }
+//     if (productDeleteError) {
+//       throw new Error(`Error deleting products: ${productDeleteError.message}`);
+//     }
 
-    // Delete the category
-    const { error: categoryDeleteError } = await supabase
-      .from("category")
-      .delete()
-      .eq("id", id);
+//     // Delete the category
+//     const { error: categoryDeleteError } = await supabase
+//       .from("category")
+//       .delete()
+//       .eq("id", id);
 
-    if (categoryDeleteError) {
-      throw new Error(
-        `Error deleting category: ${categoryDeleteError.message}`
-      );
-    }
+//     if (categoryDeleteError) {
+//       throw new Error(
+//         `Error deleting category: ${categoryDeleteError.message}`
+//       );
+//     }
 
-    res.status(200).json({
-      success: true,
-      message: "Category and associated products deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting category and products:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       message: "Category and associated products deleted successfully",
+//     });
+//   } catch (error) {
+//     console.error("Error deleting category and products:", error.message);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// });
 
 module.exports = router;
