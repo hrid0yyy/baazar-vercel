@@ -193,4 +193,93 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/category/{id}:
+ *   get:
+ *     summary: Fetch a category by its ID
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the category to fetch
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Category fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     title:
+ *                       type: string
+ *                       example: "Electronics"
+ *                     picture:
+ *                       type: string
+ *                       example: "https://example.com/image.jpg"
+ *       404:
+ *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Category not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("category")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      throw new Error(`Error fetching category: ${error.message}`);
+    }
+
+    if (!data) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Category not found" });
+    }
+
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching category:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

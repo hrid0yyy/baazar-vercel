@@ -165,4 +165,168 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/product/update/coupon/{id}:
+ *   put:
+ *     summary: Update coupon for a product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Product ID to update the coupon for
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: coupon
+ *         required: true
+ *         description: Coupon code to apply to the product
+ *         schema:
+ *           type: string
+ *           example: "DISCOUNT2025"
+ *     responses:
+ *       200:
+ *         description: Coupon updated successfully
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.put("/update/coupon/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { coupon } = req.query; // Changed to extract coupon from query
+
+    if (!coupon) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Coupon code is required" });
+    }
+
+    const { data, error } = await supabase
+      .from("product")
+      .update({ coupon })
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(`Error updating coupon: ${error.message}`);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Coupon updated successfully", data });
+  } catch (error) {
+    console.error("Error updating coupon:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/product/update/discount/{id}:
+ *   put:
+ *     summary: Update discount for a product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Product ID to update the discount for
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: discount
+ *         required: true
+ *         description: Discount percentage to apply to the product
+ *         schema:
+ *           type: integer
+ *           example: 20
+ *     responses:
+ *       200:
+ *         description: Discount updated successfully
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.put("/update/discount/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { discount } = req.query; // Changed to extract discount from query
+
+    if (discount === undefined || discount < 0 || discount > 100) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Discount percentage is required and should be between 0 and 100",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("product")
+      .update({ discount })
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(`Error updating discount: ${error.message}`);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Discount updated successfully", data });
+  } catch (error) {
+    console.error("Error updating discount:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/product/{id}:
+ *   get:
+ *     summary: Fetch a product by its ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the product to fetch
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Product fetched successfully
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("product")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      throw new Error(`Error fetching product: ${error.message}`);
+    }
+
+    if (!data) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
+    }
+
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching product:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
