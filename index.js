@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors"); // Import CORS
 const setupSwagger = require("./swagger");
 const PORT = 4000;
+const path = require("path");
 
 // Enable CORS for all origins
 app.use(cors());
@@ -11,8 +12,10 @@ app.use(cors());
 const api = require("./api/main");
 app.use("/api", api);
 
+app.use(express.static("public"));
+
 app.get("/", (req, res) => {
-  res.status(200).json("Welcome, baazar limit app is working well");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 setupSwagger(app);
