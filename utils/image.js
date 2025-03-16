@@ -17,7 +17,7 @@ const uploadImage = async (file) => {
 
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(`${uniqueFileName}`, fileBuffer, {
+      .upload(uniqueFileName, fileBuffer, {
         contentType: file.mimetype,
       });
 
@@ -27,7 +27,8 @@ const uploadImage = async (file) => {
       throw new Error(`Error uploading file to Supabase: ${error.message}`);
     }
 
-    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/images/${uniqueFileName}`;
+    // Corrected URL construction
+    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
 
     return { success: true, publicUrl };
   } catch (error) {
