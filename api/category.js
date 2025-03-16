@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const { supabase } = require("../supabase");
 const uploadImage = require("../utils/image");
-const upload = multer(); // Keep it in memory for serverless
+const upload = multer({ dest: "uploads/" }); // Keep it in memory for serverless
 
 // Swagger tags
 /**
