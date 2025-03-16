@@ -3,6 +3,9 @@ const app = express();
 const setupSwagger = require("./swagger");
 const PORT = 4000;
 
+// Enable CORS for all origins
+app.use(cors());
+
 // API routes
 const api = require("./api/main");
 app.use("/api", api);
