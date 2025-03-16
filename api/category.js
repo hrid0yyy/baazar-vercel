@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const { supabase } = require("../supabase");
-const uploadImage = require("../utils/image");
-const upload = multer({ dest: "uploads/" }); // Keep it in memory for serverless
+const storage = multer.memoryStorage(); // Store files in memory, not on disk
+const upload = multer({ storage }); // Configure multer to use memory storage
 
 // Swagger tags
 /**
@@ -13,6 +13,7 @@ const upload = multer({ dest: "uploads/" }); // Keep it in memory for serverless
  *   description: Category management APIs
  */
 
+// Category endpoint
 router.get("/", (req, res) => {
   res.json({ message: "Category API working!" });
 });
@@ -94,25 +95,35 @@ router.post("/add", upload.single("picture"), async (req, res) => {
         .json({ success: false, error: "Title and picture are required" });
     }
 
-    const result = await uploadImage(file);
-    if (!result.success) {
-      return res.status(500).json({ success: false, error: result.error });
+    // Upload the file directly to Supabase storage from memory buffer
+    const uniqueFileName = `${Date.now()}_${file.originalname}`;
+
+    const { data, error } = await supabase.storage
+      .from("images") // Replace with your actual bucket name
+      .upload(uniqueFileName, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (error) {
+      throw new Error(`Error uploading file to Supabase: ${error.message}`);
     }
 
-    const publicUrl = result.publicUrl;
+    // Construct the public URL for the file
+    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/category-images/${uniqueFileName}`;
 
-    const { data, error } = await supabase
+    // Insert category info into the database
+    const { data: categoryData, error: dbError } = await supabase
       .from("category")
       .insert([{ title, picture: publicUrl }]);
 
-    if (error) {
-      throw new Error(`Database insertion failed: ${error.message}`);
+    if (dbError) {
+      throw new Error(`Database insertion failed: ${dbError.message}`);
     }
 
     res.status(201).json({
       success: true,
       message: "Category added successfully",
-      data,
+      data: categoryData,
     });
   } catch (error) {
     console.error("Error adding category:", error.message);
