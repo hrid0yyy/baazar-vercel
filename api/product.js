@@ -329,4 +329,51 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/product/category/{category_id}:
+ *   get:
+ *     summary: Fetch products by category ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: category_id
+ *         required: true
+ *         description: The ID of the category to fetch products from
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Products fetched successfully
+ *       404:
+ *         description: No products found for this category
+ *       500:
+ *         description: Server error
+ */
+router.get("/category/:category_id", async (req, res) => {
+  try {
+    const { category_id } = req.params;
+
+    const { data, error } = await supabase
+      .from("product")
+      .select("*")
+      .eq("category_id", category_id);
+
+    if (error) {
+      throw new Error(`Error fetching products: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "No products found for this category" });
+    }
+
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
