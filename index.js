@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cors = require("cors"); // Import CORS
 const setupSwagger = require("./swagger");
 const PORT = 4000;
 
