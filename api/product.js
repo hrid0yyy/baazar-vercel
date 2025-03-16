@@ -5,7 +5,7 @@ const { supabase } = require("../supabase");
 const uploadImage = require("../utils/image");
 
 // Use memory storage for file uploads in serverless functions
-const upload = multer(); // Save files to the "uploads" directory
+const upload = multer({ storage: multer.memoryStorage() }); // Save files to the "uploads" directory
 
 /**
  * @swagger
