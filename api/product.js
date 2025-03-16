@@ -281,130 +281,130 @@ router.put("/update/discount/:id", async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /api/product/{id}:
- *   get:
- *     summary: Fetch a product by its ID
- *     tags: [Products]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the product to fetch
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Product fetched successfully
- *       404:
- *         description: Product not found
- *       500:
- *         description: Server error
- */
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
+// /**
+//  * @swagger
+//  * /api/product/{id}:
+//  *   get:
+//  *     summary: Fetch a product by its ID
+//  *     tags: [Products]
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         description: The ID of the product to fetch
+//  *         schema:
+//  *           type: integer
+//  *     responses:
+//  *       200:
+//  *         description: Product fetched successfully
+//  *       404:
+//  *         description: Product not found
+//  *       500:
+//  *         description: Server error
+//  */
+// router.get("/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from("product")
-      .select("*")
-      .eq("id", id)
-      .single();
+//     const { data, error } = await supabase
+//       .from("product")
+//       .select("*")
+//       .eq("id", id)
+//       .single();
 
-    if (error) {
-      throw new Error(`Error fetching product: ${error.message}`);
-    }
+//     if (error) {
+//       throw new Error(`Error fetching product: ${error.message}`);
+//     }
 
-    if (!data) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Product not found" });
-    }
+//     if (!data) {
+//       return res
+//         .status(404)
+//         .json({ success: false, error: "Product not found" });
+//     }
 
-    res.status(200).json({ success: true, data });
-  } catch (error) {
-    console.error("Error fetching product:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+//     res.status(200).json({ success: true, data });
+//   } catch (error) {
+//     console.error("Error fetching product:", error.message);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// });
 
-/**
- * @swagger
- * /api/product/category/{category_id}:
- *   get:
- *     summary: Fetch products by category ID
- *     tags: [Products]
- *     parameters:
- *       - in: path
- *         name: category_id
- *         required: true
- *         description: The ID of the category to fetch products from
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Products fetched successfully
- *       404:
- *         description: No products found for this category
- *       500:
- *         description: Server error
- */
-router.get("/category/:category_id", async (req, res) => {
-  try {
-    const { category_id } = req.params;
+// /**
+//  * @swagger
+//  * /api/product/category/{category_id}:
+//  *   get:
+//  *     summary: Fetch products by category ID
+//  *     tags: [Products]
+//  *     parameters:
+//  *       - in: path
+//  *         name: category_id
+//  *         required: true
+//  *         description: The ID of the category to fetch products from
+//  *         schema:
+//  *           type: integer
+//  *     responses:
+//  *       200:
+//  *         description: Products fetched successfully
+//  *       404:
+//  *         description: No products found for this category
+//  *       500:
+//  *         description: Server error
+//  */
+// router.get("/category/:category_id", async (req, res) => {
+//   try {
+//     const { category_id } = req.params;
 
-    const { data, error } = await supabase
-      .from("product")
-      .select("*")
-      .eq("category_id", category_id);
+//     const { data, error } = await supabase
+//       .from("product")
+//       .select("*")
+//       .eq("category_id", category_id);
 
-    if (error) {
-      throw new Error(`Error fetching products: ${error.message}`);
-    }
+//     if (error) {
+//       throw new Error(`Error fetching products: ${error.message}`);
+//     }
 
-    if (!data || data.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "No products found for this category" });
-    }
+//     if (!data || data.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ success: false, error: "No products found for this category" });
+//     }
 
-    res.status(200).json({ success: true, data });
-  } catch (error) {
-    console.error("Error fetching products:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-/**
- * @swagger
- * /api/product/delete/{id}:
- *   delete:
- *     summary: Delete a single product by ID
- *     tags: [Products]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The product ID to delete
- *     responses:
- *       200:
- *         description: Successfully deleted the product
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *       404:
- *         description: Product not found
- *       500:
- *         description: Internal server error
- */
+//     res.status(200).json({ success: true, data });
+//   } catch (error) {
+//     console.error("Error fetching products:", error.message);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// });
+// /**
+//  * @swagger
+//  * /api/product/delete/{id}:
+//  *   delete:
+//  *     summary: Delete a single product by ID
+//  *     tags: [Products]
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *         description: The product ID to delete
+//  *     responses:
+//  *       200:
+//  *         description: Successfully deleted the product
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 success:
+//  *                   type: boolean
+//  *                 message:
+//  *                   type: string
+//  *       404:
+//  *         description: Product not found
+//  *       500:
+//  *         description: Internal server error
+//  */
 // router.delete("/delete/:id", async (req, res) => {
 //   try {
 //     const { id } = req.params;
