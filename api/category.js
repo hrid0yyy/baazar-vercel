@@ -4,7 +4,6 @@ const multer = require("multer");
 const { supabase } = require("../supabase");
 const storage = multer.memoryStorage(); // Store files in memory, not on disk
 const upload = multer({ storage }); // Configure multer to use memory storage
-
 // Swagger tags
 /**
  * @swagger
@@ -95,11 +94,14 @@ router.post("/add", upload.single("picture"), async (req, res) => {
         .json({ success: false, error: "Title and picture are required" });
     }
 
+    // Upload image using the reusable function
+    // const url = await uploadImage(file, "images");
+
     // Upload the file directly to Supabase storage from memory buffer
     const uniqueFileName = `${Date.now()}_${file.originalname}`;
 
     const { data, error } = await supabase.storage
-      .from("images") // Replace with your actual bucket name
+      .from("images")
       .upload(uniqueFileName, file.buffer, {
         contentType: file.mimetype,
       });

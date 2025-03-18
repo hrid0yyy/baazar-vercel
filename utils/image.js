@@ -1,41 +1,32 @@
-const path = require("path");
-const fs = require("fs/promises");
-const { supabase } = require("../supabase"); // Ensure correct import
+const supabase = require("../supabase"); // Adjust path if needed
 
-const BUCKET_NAME = "images";
-
-const uploadImage = async (file) => {
-  try {
-    if (!file) {
-      throw new Error("No file uploaded");
-    }
-
-    const filePath = path.resolve(file.path);
-    const fileBuffer = await fs.readFile(filePath);
-
-    const uniqueFileName = `${Date.now()}_${file.originalname}`;
-
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(uniqueFileName, fileBuffer, {
-        contentType: file.mimetype,
-      });
-
-    await fs.unlink(filePath);
-
-    if (error) {
-      throw new Error(`Error uploading file to Supabase: ${error.message}`);
-    }
-
-    // Corrected URL construction
-    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
-
-    return { success: true, publicUrl };
-  } catch (error) {
-    console.error("Error during file upload:", error.message);
-    return { success: false, error: error.message };
+/**
+ * Upload an image to Supabase Storage
+ * @param {Object} file - The uploaded file object
+ * @param {string} storageBucket - The name of the storage bucket
+ * @returns {Promise<string>} - The public URL of the uploaded image
+ */
+const uploadImage = async (file, storageBucket = "images") => {
+  if (!file) {
+    throw new Error("No file provided for upload.");
   }
+
+  const uniqueFileName = `${Date.now()}_${file.originalname}`;
+
+  const { data, error } = await supabase.storage
+    .from(storageBucket)
+    .upload(uniqueFileName, file.buffer, {
+      contentType: file.mimetype,
+    });
+
+  if (error) {
+    throw new Error(`Error uploading file to Supabase: ${error.message}`);
+  }
+
+  // Construct the public URL
+  return `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/${storageBucket}/${uniqueFileName}`;
 };
 
-// Correctly export the function
-module.exports = uploadImage;
+module.exports = {
+  uploadImage,
+};

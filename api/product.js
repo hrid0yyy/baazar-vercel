@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
  * @swagger
  * /api/product/add:
  *   post:
- *     summary: Add a new product
+ *     summary: Add a new product with images
  *     tags: [Products]
  *     requestBody:
  *       required: true
@@ -29,6 +29,13 @@ router.get("/", (req, res) => {
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - price
+ *               - quantity
+ *               - category_id
+ *               - picture
  *             properties:
  *               title:
  *                 type: string
@@ -49,88 +56,193 @@ router.get("/", (req, res) => {
  *               picture:
  *                 type: string
  *                 format: binary
+ *               additionalPics:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: "Optional additional product images"
  *     responses:
  *       201:
  *         description: Product added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product added successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: integer
+ *                     category_id:
+ *                       type: integer
+ *                     discount:
+ *                       type: number
+ *                     coupon:
+ *                       type: string
+ *                       nullable: true
+ *                     picture:
+ *                       type: string
+ *                       example: "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/main.jpg"
+ *                     additionalPic:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: [
+ *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/image1.jpg",
+ *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/image2.jpg"
+ *                       ]
  *       400:
  *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Title, description, price, quantity, category_id, and picture are required"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
-router.post("/add", upload.single("picture"), async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      price,
-      quantity,
-      category_id,
-      discount,
-      coupon,
-    } = req.body;
-    const file = req.file;
 
-    // Validate required fields
-    if (
-      !title ||
-      !description ||
-      !price ||
-      !quantity ||
-      !category_id ||
-      !file
-    ) {
-      return res.status(400).json({
-        success: false,
-        error:
-          "Title, description, price, quantity, category_id, and picture are required",
+router.post(
+  "/add",
+  upload.fields([
+    { name: "picture", maxCount: 1 },
+    { name: "additionalPics", maxCount: 10 },
+  ]),
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        price,
+        quantity,
+        category_id,
+        discount,
+        coupon,
+      } = req.body;
+      const file = req.files["picture"] ? req.files["picture"][0] : null;
+      const additionalPics = req.files["additionalPics"] || [];
+
+      // Validate required fields
+      if (
+        !title ||
+        !description ||
+        !price ||
+        !quantity ||
+        !category_id ||
+        !file
+      ) {
+        return res.status(400).json({
+          success: false,
+          error:
+            "Title, description, price, quantity, category_id, and picture are required",
+        });
+      }
+
+      const productData = {
+        title,
+        description,
+        price,
+        quantity,
+        category_id,
+        discount: discount || 0,
+        coupon: coupon || null,
+      };
+
+      // Upload main product picture
+      const uniqueFileName = `${Date.now()}_${file.originalname}`;
+      const { data, error } = await supabase.storage
+        .from("images") // Replace with your actual bucket name
+        .upload(uniqueFileName, file.buffer, {
+          contentType: file.mimetype,
+        });
+
+      if (error) {
+        throw new Error(`Error uploading main picture: ${error.message}`);
+      }
+
+      const publicUrl = `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/${uniqueFileName}`;
+
+      // Upload additional images
+      const additionalPicUrls = [];
+      for (const img of additionalPics) {
+        const imgFileName = `${Date.now()}_${img.originalname}`;
+        const { data: imgData, error: imgError } = await supabase.storage
+          .from("images")
+          .upload(imgFileName, img.buffer, {
+            contentType: img.mimetype,
+          });
+
+        if (imgError) {
+          console.error(
+            `Error uploading additional picture: ${imgError.message}`
+          );
+          continue;
+        }
+
+        additionalPicUrls.push(
+          `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/${imgFileName}`
+        );
+      }
+
+      // Insert product into database
+      const { data: productDataDb, error: dbError } = await supabase
+        .from("product")
+        .insert([
+          {
+            ...productData,
+            picture: publicUrl,
+            additionalPic: additionalPicUrls,
+          },
+        ]);
+
+      if (dbError) {
+        throw new Error(`Database insertion failed: ${dbError.message}`);
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "Product added successfully",
+        data: productDataDb,
       });
+    } catch (error) {
+      console.error("Error adding product:", error.message);
+      res.status(500).json({ success: false, error: error.message });
     }
-
-    const productData = {
-      title,
-      description,
-      price,
-      quantity,
-      category_id,
-      discount: discount || 0,
-      coupon: coupon || null,
-    };
-
-    // Upload the image file to Supabase Storage directly from memory
-    const uniqueFileName = `${Date.now()}_${file.originalname}`;
-
-    const { data, error } = await supabase.storage
-      .from("images") // Replace with your actual bucket name
-      .upload(uniqueFileName, file.buffer, {
-        contentType: file.mimetype,
-      });
-
-    if (error) {
-      throw new Error(`Error uploading file to Supabase: ${error.message}`);
-    }
-
-    // Construct the public URL for the file
-    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/product-images/${uniqueFileName}`;
-
-    // Insert the new product into Supabase
-    const { data: productDataDb, error: dbError } = await supabase
-      .from("product")
-      .insert([{ ...productData, picture: publicUrl }]);
-
-    if (dbError) {
-      throw new Error(`Database insertion failed: ${dbError.message}`);
-    }
-
-    res.status(201).json({
-      success: true,
-      message: "Product added successfully",
-      data: productDataDb,
-    });
-  } catch (error) {
-    console.error("Error adding product:", error.message);
-    res.status(500).json({ success: false, error: error.message });
   }
-});
+);
 
 /**
  * @swagger
