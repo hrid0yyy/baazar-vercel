@@ -98,14 +98,14 @@ router.get("/", (req, res) => {
  *                       nullable: true
  *                     picture:
  *                       type: string
- *                       example: "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/main.jpg"
+ *                       example: "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/images/main.jpg"
  *                     additionalPic:
  *                       type: array
  *                       items:
  *                         type: string
  *                       example: [
- *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/image1.jpg",
- *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/image2.jpg"
+ *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/images/image1.jpg",
+ *                         "https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/images/image2.jpg"
  *                       ]
  *       400:
  *         description: Missing required fields
@@ -193,7 +193,7 @@ router.post(
         throw new Error(`Error uploading main picture: ${error.message}`);
       }
 
-      const publicUrl = `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/${uniqueFileName}`;
+      const publicUrl = `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/images/${uniqueFileName}`;
 
       // Upload additional images
       const additionalPicUrls = [];
@@ -213,7 +213,7 @@ router.post(
         }
 
         additionalPicUrls.push(
-          `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/product-images/${imgFileName}`
+          `https://hwqkmfzdpsmyeuabszuy.supabase.co/storage/v1/object/public/images/${imgFileName}`
         );
       }
 

@@ -111,7 +111,7 @@ router.post("/add", upload.single("picture"), async (req, res) => {
     }
 
     // Construct the public URL for the file
-    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/category-images/${uniqueFileName}`;
+    const publicUrl = `${"https://hwqkmfzdpsmyeuabszuy.supabase.co"}/storage/v1/object/public/images/${uniqueFileName}`;
 
     // Insert category info into the database
     const { data: categoryData, error: dbError } = await supabase
