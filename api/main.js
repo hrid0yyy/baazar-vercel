@@ -14,6 +14,10 @@ router.use("/product", pro);
 const wish = require("./wishlist");
 router.use("/wishlist", wish);
 
+// review API routes
+const rev = require("./review");
+router.use("/review", rev);
+
 // Base route
 router.get("/", (req, res) => {
   res.json({ message: "Api route is working" });

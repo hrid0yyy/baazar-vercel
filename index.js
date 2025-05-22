@@ -7,6 +7,11 @@ const path = require("path");
 
 // Enable CORS for all origins
 app.use(cors());
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Optional: If your client sends URL-encoded form data, add this
+app.use(express.urlencoded({ extended: true }));
 
 // API routes
 const api = require("./api/main");

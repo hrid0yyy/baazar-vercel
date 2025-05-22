@@ -267,8 +267,13 @@ router.get("/fetch", async (req, res) => {
   try {
     const { title } = req.query;
 
-    let query = supabase.from("product").select("*");
+    // Build the base query for the product table
+    let query = supabase.from("product").select(`
+     *,
+     review:review(*)
+   `);
 
+    // Apply title filter if provided
     if (title) {
       query = query.ilike("title", `%${title}%`);
     }
@@ -429,7 +434,7 @@ router.get("/:id", async (req, res) => {
 
     const { data, error } = await supabase
       .from("product")
-      .select("*")
+      .select("*,review(*)")
       .eq("id", id)
       .single();
 
